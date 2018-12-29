@@ -5,12 +5,14 @@ namespace StringSimilarityDemo.Common
     public static class ConsoleLogger
     {
         public static readonly ConsoleColor OriginalColor = Console.ForegroundColor;
-
+        
         public static ConsoleColor VerboseColor = ConsoleColor.DarkGray;
         public static ConsoleColor NormalColor = ConsoleColor.White;
         public static ConsoleColor WarningColor = ConsoleColor.DarkYellow;
         public static ConsoleColor ErrorColor = ConsoleColor.Red;
         public static ConsoleColor SuccessColor = ConsoleColor.DarkGreen;
+
+        public static Options Options;
 
         public static void SetColor(ConsoleColor color)
         {
@@ -64,7 +66,10 @@ namespace StringSimilarityDemo.Common
 
         public static void Verbose(object message)
         {
-            WriteLine(message, VerboseColor);
+            if (Options?.Verbose ?? false)
+            {
+                WriteLine(message, VerboseColor);
+            }
         }
 
         public static void Normal(object message)
@@ -80,6 +85,11 @@ namespace StringSimilarityDemo.Common
         public static void Error(object message)
         {
             WriteLine(message, ErrorColor);
+        }
+
+        public static void Success(object message)
+        {
+            WriteLine(message, SuccessColor);
         }
     }
 }
