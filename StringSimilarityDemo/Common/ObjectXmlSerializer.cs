@@ -1,4 +1,6 @@
-﻿using System.IO;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Text;
 using System.Xml;
 using System.Xml.Serialization;
@@ -38,6 +40,33 @@ namespace StringSimilarityDemo.Common
         public T DeserializeFromFile<T>(string path)
         {
             return DeserializeFromXml<T>(File.ReadAllText(path));
+        }
+
+        public List<T> DeserializeFromFiles<T>(string rootPath, string searchPattern, Action<string> actionForEverySuccess = null)
+        {
+            var backupFiles = Directory.GetFiles(rootPath, searchPattern, SearchOption.TopDirectoryOnly);
+
+            if (backupFiles.Length == 0)
+            {
+                return null;
+            }
+
+            var retval = new List<T>();
+
+            foreach (string backupFile in backupFiles)
+            {
+                try
+                {
+                    retval.Add(DeserializeFromFile<T>(backupFile));
+                    actionForEverySuccess?.Invoke(backupFile);
+                }
+                catch (Exception e)
+                {
+                    ConsoleLogger.Warning(e);
+                }
+            }
+
+            return retval.Count == 0 ? null : retval;
         }
     }
 }

@@ -13,15 +13,17 @@ namespace StringSimilarityDemo
 {
     class Program
     {
+        public const string serializedXmlFileName = "LastPrhCompanyInfoSearchResult.xml";
         public static readonly string serializedXmlPath =
-            AppDomain.CurrentDomain.BaseDirectory.TrimEnd('\\') + @"\LastPrhCompanyInfoSearchResult.xml";
+            AppDomain.CurrentDomain.BaseDirectory.TrimEnd('\\') + $@"\{serializedXmlFileName}";
 
         public static IStringSimilarity stringSimilarity = new JaroWinkler();
 
         static void Main(string[] args)
         {
             DateTime startTime = DateTime.Now;
-            ConsoleLogger.Normal($"Starting application {AppDomain.CurrentDomain.FriendlyName}...");
+            ConsoleLogger.WriteLine("/************************/", ConsoleColor.Yellow);
+            ConsoleLogger.WriteLine($"Starting application {AppDomain.CurrentDomain.FriendlyName}...", ConsoleColor.Yellow, true);
 
             try
             {
@@ -33,7 +35,7 @@ namespace StringSimilarityDemo
             }
             finally
             {
-                ConsoleLogger.Normal($"Application finished. (Execution time: {(DateTime.Now - startTime).TotalSeconds:N})");
+                ConsoleLogger.Normal($"Application finished. (Execution time: {(DateTime.Now - startTime).TotalSeconds:N}s)", true);
                 ConsoleLogger.SetColor(ConsoleLogger.OriginalColor);
             }
         }
@@ -60,16 +62,16 @@ namespace StringSimilarityDemo
 
             if (similarityResults.Count == 0)
             {
-                ConsoleLogger.Warning($"No similarities found with {options.CompanyNameStringSimilarityTreshold:F} treshold.");
+                ConsoleLogger.Warning($"No similarities found with {options.CompanyNameStringSimilarityTreshold:F} treshold.", true);
 
                 var closestSimilarity = allCompanyInfoSimilarities.OrderByDescending(o => o.Similarity).First();
                 ConsoleLogger.Normal($"Closest similarity with company {closestSimilarity.CompanyInfo.name} " +
                                      $"({closestSimilarity.CompanyInfo.businessId}) " +
-                                     $"was with similarity value {closestSimilarity.Similarity:P}.");
+                                     $"was with similarity value {closestSimilarity.Similarity:P}.", true);
             }
             else
             {
-                ConsoleLogger.Success($"Found {similarityResults.Count} similarities:");
+                ConsoleLogger.Success($"Found {similarityResults.Count} similarities:", true);
 
                 var topSimilarities = similarityResults
                     .OrderByDescending(o => o.Similarity)
@@ -80,14 +82,14 @@ namespace StringSimilarityDemo
                 {
                     ConsoleLogger.Success($"{i + 1}. {topSimilarities[i].CompanyInfo.name} " +
                                           $"({topSimilarities[i].CompanyInfo.businessId}): " +
-                                          $"{topSimilarities[i].Similarity:P}");
+                                          $"{topSimilarities[i].Similarity:P}", true);
                 }
             }
         }
 
         private static List<StringSimilarityCompanyInfo> FindCompanyInfoSimilarities(Options options, List<PrhCompanyInfo> allCompanyInfos)
         {
-            ConsoleLogger.Write($"Finding similarities with search word \"{options.FindCompanyName}\"... ", ConsoleLogger.NormalColor);
+            ConsoleLogger.Write($"Finding similarities with search word \"{options.FindCompanyName}\"... ", ConsoleLogger.NormalColor, true);
 
             var similarityService = new CompanyInfoSimilarityService(options, Program.stringSimilarity);
             var allCompanyInfoSimilarities = similarityService.FindSimilarities(allCompanyInfos);
@@ -105,6 +107,35 @@ namespace StringSimilarityDemo
 
             ConsoleLogger.Success($" FINISHED! (Loaded {allCompanyInfos.Count} companies)");
 
+            if (options.Merge)
+            {
+                allCompanyInfos = MergeSerializedFiles();
+            }
+
+            return allCompanyInfos;
+        }
+
+        private static List<PrhCompanyInfo> MergeSerializedFiles()
+        {
+            ConsoleLogger.Write("Merging all serialized files...", ConsoleLogger.NormalColor, true);
+            var searchPattern = serializedXmlFileName.Substring(0, serializedXmlFileName.Length - 3) + "*";
+            var objectXmlSerializer = new ObjectXmlSerializer();
+
+            var backUps = objectXmlSerializer.DeserializeFromFiles<List<PrhCompanyInfo>>(
+                AppDomain.CurrentDomain.BaseDirectory, searchPattern, File.Delete);
+
+            if (backUps == null)
+            {
+                return null;
+            }
+
+            var allCompanyInfos = backUps.SelectMany(o => o).ToList();
+            ConsoleLogger.Success($" FINISHED! (Loaded {allCompanyInfos.Count} companies)");
+
+            ConsoleLogger.Write("Serializing merged file to one file...", ConsoleLogger.NormalColor, true);
+            objectXmlSerializer.SerializeToFile(allCompanyInfos, serializedXmlPath);
+            ConsoleLogger.Success(" FINISHED!");
+
             return allCompanyInfos;
         }
 
@@ -115,7 +146,7 @@ namespace StringSimilarityDemo
                 throw new FileNotFoundException("Load all company infos before running the app.");
             }
 
-            ConsoleLogger.Write("Loading company infos from serialized file...", ConsoleLogger.NormalColor);
+            ConsoleLogger.Write("Loading company infos from serialized file...", ConsoleLogger.NormalColor, true);
 
             var objectXmlSerializer = new ObjectXmlSerializer();
             var allCompanyInfos = objectXmlSerializer.DeserializeFromFile<List<PrhCompanyInfo>>(serializedXmlPath);
@@ -127,7 +158,7 @@ namespace StringSimilarityDemo
             options.ValidateCompanyLoad();
             var prhClient = new PrhClient();
 
-            ConsoleLogger.Write("Loading company infos from PRH", ConsoleLogger.NormalColor);
+            ConsoleLogger.Write("Loading company infos from PRH", ConsoleLogger.NormalColor, true);
             var allCompanyInfos = prhClient.LoadAllCompanyInfo(options, true);
 
             if (File.Exists(serializedXmlPath))

@@ -29,6 +29,9 @@ namespace StringSimilarityDemo.Common
         [Option('e', "registrationTo", Required = false, Default = null, HelpText = "Find companies limited registration to date.")]
         public string CompanyRegistrationTo { get; set; }
 
+        [Option('m', "mergeFiles", Required = false, Default = false, HelpText = "Merge all serialized files into a one file.")]
+        public bool Merge { get; set; }
+
         public void ValidateCompanyLoad()
         {
             if (!LoadCompanyInfo)
