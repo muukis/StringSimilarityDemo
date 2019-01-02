@@ -1,25 +1,23 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using F23.StringSimilarity.Interfaces;
 using StringSimilarityDemo.Common;
-using StringSimilarityDemo.PRH;
 
 namespace StringSimilarityDemo.StringSimilarity
 {
-    public class CompanyInfoSimilarityService
+    public class ObjectSimilarityService
     {
         private readonly IStringSimilarity stringSimilarity;
-        private readonly Options options;
 
-        public CompanyInfoSimilarityService(Options options, IStringSimilarity stringSimilarity)
+        public ObjectSimilarityService(IStringSimilarity stringSimilarity)
         {
-            this.options = options;
             this.stringSimilarity = stringSimilarity;
         }
 
-        public List<StringSimilarityCompanyInfo> FindSimilarities(List<PrhCompanyInfo> allCompanyInfos)
+        public List<StringSimilarityObject<T>> FindSimilarities<T>(List<T> allObjects, string findText, Func<T, string> comparedText)
         {
-            if (allCompanyInfos == null)
+            if (allObjects == null)
             {
                 ConsoleLogger.Write("!", ConsoleLogger.ErrorColor);
                 return null;
@@ -28,20 +26,22 @@ namespace StringSimilarityDemo.StringSimilarity
             double donePercentage = 0;
             const double nextCheckPercentageHop = 0.05;
             double nextCheckPercentage = 0.05;
-            string findCompanyName = this.options.FindCompanyName.ToUpper();
+            string findCompanyName = findText.ToUpper();
 
             string lastDonePercentageText = $"{donePercentage:P}";
             ConsoleLogger.Write(lastDonePercentageText);
 
-            var retval = allCompanyInfos.Select((o, i) =>
+            var startTime = DateTime.Now;
+
+            var retval = allObjects.Select((o, i) =>
             {
-                var similarity = new StringSimilarityCompanyInfo
+                var similarity = new StringSimilarityObject<T>
                 {
-                    CompanyInfo = o,
-                    Similarity = this.stringSimilarity.Similarity(findCompanyName, o.name ?? string.Empty)
+                    Object = o,
+                    Similarity = this.stringSimilarity.Similarity(findCompanyName, comparedText(o)?.ToUpper() ?? string.Empty)
                 };
 
-                donePercentage = (double) (i + 1) / allCompanyInfos.Count;
+                donePercentage = (double) (i + 1) / allObjects.Count;
 
                 if (donePercentage > nextCheckPercentage)
                 {
@@ -59,10 +59,12 @@ namespace StringSimilarityDemo.StringSimilarity
                 return similarity;
             }).ToList();
 
-            ConsoleLogger.Write(new string('\b', lastDonePercentageText.Length));
+            var timeConsumed = DateTime.Now - startTime;
 
-            lastDonePercentageText = $"{donePercentage:P}";
-            ConsoleLogger.Write(lastDonePercentageText);
+            ConsoleLogger.Write(new string('\b', lastDonePercentageText.Length));
+            ConsoleLogger.Write($"{donePercentage:P} ");
+            ConsoleLogger.Write($"(Time consumed: {timeConsumed.TotalMilliseconds:F}ms " +
+                                $"[avg/compare: {(timeConsumed.TotalMilliseconds / allObjects.Count) * 1000:F}ns])", ConsoleColor.Yellow);
 
             return retval;
         }

@@ -2,9 +2,9 @@
 
 namespace StringSimilarityDemo.StringSimilarity
 {
-    public class StringSimilarityCompanyInfo
+    public class StringSimilarityObject<T>
     {
-        public PrhCompanyInfo CompanyInfo { get; set; }
+        public T Object { get; set; }
         public double Similarity { get; set; }
     }
 }

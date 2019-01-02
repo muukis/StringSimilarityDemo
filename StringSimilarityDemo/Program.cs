@@ -55,7 +55,7 @@ namespace StringSimilarityDemo
             ShowSimilarityResults(options, allCompanyInfoSimilarities);
         }
 
-        private static void ShowSimilarityResults(Options options, List<StringSimilarityCompanyInfo> allCompanyInfoSimilarities)
+        private static void ShowSimilarityResults(Options options, List<StringSimilarityObject<PrhCompanyInfo>> allCompanyInfoSimilarities)
         {
             var similarityResults =
                 allCompanyInfoSimilarities.Where(o => o.Similarity >= options.CompanyNameStringSimilarityTreshold).ToList();
@@ -65,8 +65,8 @@ namespace StringSimilarityDemo
                 ConsoleLogger.Warning($"No similarities found with {options.CompanyNameStringSimilarityTreshold:F} treshold.", true);
 
                 var closestSimilarity = allCompanyInfoSimilarities.OrderByDescending(o => o.Similarity).First();
-                ConsoleLogger.Normal($"Closest similarity with company {closestSimilarity.CompanyInfo.name} " +
-                                     $"({closestSimilarity.CompanyInfo.businessId}) " +
+                ConsoleLogger.Normal($"Closest similarity with company {closestSimilarity.Object.name} " +
+                                     $"({closestSimilarity.Object.businessId}) " +
                                      $"was with similarity value {closestSimilarity.Similarity:P}.", true);
             }
             else
@@ -80,19 +80,19 @@ namespace StringSimilarityDemo
 
                 for (int i = 0; i < topSimilarities.Count; i++)
                 {
-                    ConsoleLogger.Success($"{i + 1}. {topSimilarities[i].CompanyInfo.name} " +
-                                          $"({topSimilarities[i].CompanyInfo.businessId}): " +
-                                          $"{topSimilarities[i].Similarity:P}", true);
+                    ConsoleLogger.Success($"{i + 1}. {topSimilarities[i].Object.name} " +
+                                          $"({topSimilarities[i].Object.businessId}): " +
+                                          $"{topSimilarities[i].Similarity:P}", false);
                 }
             }
         }
 
-        private static List<StringSimilarityCompanyInfo> FindCompanyInfoSimilarities(Options options, List<PrhCompanyInfo> allCompanyInfos)
+        private static List<StringSimilarityObject<PrhCompanyInfo>> FindCompanyInfoSimilarities(Options options, List<PrhCompanyInfo> allCompanyInfos)
         {
             ConsoleLogger.Write($"Finding similarities with search word \"{options.FindCompanyName}\"... ", ConsoleLogger.NormalColor, true);
 
-            var similarityService = new CompanyInfoSimilarityService(options, Program.stringSimilarity);
-            var allCompanyInfoSimilarities = similarityService.FindSimilarities(allCompanyInfos);
+            var similarityService = new ObjectSimilarityService(Program.stringSimilarity);
+            var allCompanyInfoSimilarities = similarityService.FindSimilarities(allCompanyInfos, options.FindCompanyName, o => o.name);
 
             ConsoleLogger.Success(" FINISHED!");
 
