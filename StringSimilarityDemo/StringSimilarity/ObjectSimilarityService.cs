@@ -8,11 +8,11 @@ namespace StringSimilarityDemo.StringSimilarity
 {
     public class ObjectSimilarityService
     {
-        private readonly IStringSimilarity stringSimilarity;
+        private readonly IStringSimilarity _stringSimilarity;
 
         public ObjectSimilarityService(IStringSimilarity stringSimilarity)
         {
-            this.stringSimilarity = stringSimilarity;
+            this._stringSimilarity = stringSimilarity;
         }
 
         public List<StringSimilarityObject<T>> FindSimilarities<T>(List<T> allObjects, string findText, Func<T, string> comparedText)
@@ -33,12 +33,12 @@ namespace StringSimilarityDemo.StringSimilarity
 
             var startTime = DateTime.Now;
 
-            var retval = allObjects.Select((o, i) =>
+            var similarities = allObjects.Select((o, i) =>
             {
                 var similarity = new StringSimilarityObject<T>
                 {
                     Object = o,
-                    Similarity = this.stringSimilarity.Similarity(findCompanyName, comparedText(o)?.ToUpper() ?? string.Empty)
+                    Similarity = this._stringSimilarity.Similarity(findCompanyName, comparedText(o)?.ToUpper() ?? string.Empty)
                 };
 
                 donePercentage = (double) (i + 1) / allObjects.Count;
@@ -66,7 +66,7 @@ namespace StringSimilarityDemo.StringSimilarity
             ConsoleLogger.Write($"(Time consumed: {timeConsumed.TotalMilliseconds:F}ms " +
                                 $"[avg/compare: {(timeConsumed.TotalMilliseconds / allObjects.Count) * 1000:F}ns])", ConsoleColor.Yellow);
 
-            return retval;
+            return similarities;
         }
     }
 }

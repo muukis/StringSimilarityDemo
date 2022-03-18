@@ -9,7 +9,7 @@ namespace StringSimilarityDemo.PRH
 {
     public class PrhClient
     {
-        private int sleepFor429 = 5000;
+        private int _sleepFor429 = 5000;
 
         public List<PrhCompanyInfo> LoadAllCompanyInfo(Options options, bool ignoreErrors = false)
         {
@@ -17,9 +17,9 @@ namespace StringSimilarityDemo.PRH
 
             try
             {
-                const int loadLimit = 1000;
+                int loadLimit = 1000;
                 int newCompanyInfosCount;
-                int startingIndex = 0;
+                int startingIndex = 115000;
 
                 do
                 {
@@ -69,30 +69,21 @@ namespace StringSimilarityDemo.PRH
             }
 
             var request = new RestRequest(resource);
-            IRestResponse<PrhClientCompanyInfoResult> response = client.Execute<PrhClientCompanyInfoResult>(request);
-            bool tooManyRequests = false;
+            RestResponse<PrhClientCompanyInfoResult> response;
 
-            do
+            while(true)
             {
-                response = client.Execute<PrhClientCompanyInfoResult>(request);
+                response = client.ExecuteAsync<PrhClientCompanyInfoResult>(request).GetAwaiter().GetResult();
 
-                if ((int)response.StatusCode == 429) // Too Many Requests
+                if ((int)response.StatusCode != 429) // 429 = Too Many Requests
                 {
-                    ConsoleLogger.Write("!", ConsoleLogger.WarningColor);
-
-                    if (tooManyRequests)
-                    {
-                        sleepFor429 += 1000;
-                    }
-
-                    Thread.Sleep(sleepFor429);
-                    tooManyRequests = true;
+                    break;
                 }
-                else
-                {
-                    tooManyRequests = false;
-                }
-            } while ((int) response.StatusCode == 429);
+
+                ConsoleLogger.Write("!", ConsoleLogger.WarningColor);
+                Thread.Sleep(_sleepFor429);
+                _sleepFor429 += 1000;
+            }
 
             if (response.StatusCode == HttpStatusCode.NotFound)
             {
@@ -104,7 +95,7 @@ namespace StringSimilarityDemo.PRH
                 throw new ApplicationException($"{nameof(PrhClient)} REST response returned with status code {response.StatusCode}.");
             }
 
-            return response.Data.results;
+            return response.Data?.results;
         }
     }
 }

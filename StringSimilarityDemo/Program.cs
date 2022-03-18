@@ -13,11 +13,11 @@ namespace StringSimilarityDemo
 {
     class Program
     {
-        public const string serializedXmlFileName = "LastPrhCompanyInfoSearchResult.xml";
-        public static readonly string serializedXmlPath =
-            AppDomain.CurrentDomain.BaseDirectory.TrimEnd('\\') + $@"\{serializedXmlFileName}";
+        public const string SerializedXmlFileName = "LastPrhCompanyInfoSearchResult.xml";
+        public static readonly string SerializedXmlPath =
+            AppDomain.CurrentDomain.BaseDirectory.TrimEnd('\\') + $@"\{SerializedXmlFileName}";
 
-        public static IStringSimilarity stringSimilarity = new JaroWinkler();
+        public static readonly IStringSimilarity StringSimilarity = new JaroWinkler();
 
         static void Main(string[] args)
         {
@@ -91,7 +91,7 @@ namespace StringSimilarityDemo
         {
             ConsoleLogger.Write($"Finding similarities with search word \"{options.FindCompanyName}\"... ", ConsoleLogger.NormalColor, true);
 
-            var similarityService = new ObjectSimilarityService(Program.stringSimilarity);
+            var similarityService = new ObjectSimilarityService(Program.StringSimilarity);
             var allCompanyInfoSimilarities = similarityService.FindSimilarities(allCompanyInfos, options.FindCompanyName, o => o.name);
 
             ConsoleLogger.Success(" FINISHED!");
@@ -118,7 +118,7 @@ namespace StringSimilarityDemo
         private static List<PrhCompanyInfo> MergeSerializedFiles()
         {
             ConsoleLogger.Write("Merging all serialized files...", ConsoleLogger.NormalColor, true);
-            var searchPattern = serializedXmlFileName.Substring(0, serializedXmlFileName.Length - 3) + "*";
+            var searchPattern = SerializedXmlFileName.Substring(0, SerializedXmlFileName.Length - 3) + "*";
             var objectXmlSerializer = new ObjectXmlSerializer();
 
             var backUps = objectXmlSerializer.DeserializeFromFiles<List<PrhCompanyInfo>>(
@@ -133,7 +133,7 @@ namespace StringSimilarityDemo
             ConsoleLogger.Success($" FINISHED! (Loaded {allCompanyInfos.Count} companies)");
 
             ConsoleLogger.Write("Serializing merged file to one file...", ConsoleLogger.NormalColor, true);
-            objectXmlSerializer.SerializeToFile(allCompanyInfos, serializedXmlPath);
+            objectXmlSerializer.SerializeToFile(allCompanyInfos, SerializedXmlPath);
             ConsoleLogger.Success(" FINISHED!");
 
             return allCompanyInfos;
@@ -141,7 +141,7 @@ namespace StringSimilarityDemo
 
         private static List<PrhCompanyInfo> LoadCompanyInfosFromFile()
         {
-            if (!File.Exists(serializedXmlPath))
+            if (!File.Exists(SerializedXmlPath))
             {
                 throw new FileNotFoundException("Load all company infos before running the app.");
             }
@@ -149,7 +149,7 @@ namespace StringSimilarityDemo
             ConsoleLogger.Write("Loading company infos from serialized file...", ConsoleLogger.NormalColor, true);
 
             var objectXmlSerializer = new ObjectXmlSerializer();
-            var allCompanyInfos = objectXmlSerializer.DeserializeFromFile<List<PrhCompanyInfo>>(serializedXmlPath);
+            var allCompanyInfos = objectXmlSerializer.DeserializeFromFile<List<PrhCompanyInfo>>(SerializedXmlPath);
             return allCompanyInfos;
         }
 
@@ -161,14 +161,14 @@ namespace StringSimilarityDemo
             ConsoleLogger.Write("Loading company infos from PRH", ConsoleLogger.NormalColor, true);
             var allCompanyInfos = prhClient.LoadAllCompanyInfo(options, true);
 
-            if (File.Exists(serializedXmlPath))
+            if (File.Exists(SerializedXmlPath))
             {
                 try
                 {
                     string serializedXmlBackupPath =
-                        $"{serializedXmlPath.Substring(0, serializedXmlPath.Length - 4)}.Backup.{DateTime.Now:yyyyMMddHHmmssff}.xml";
+                        $"{SerializedXmlPath.Substring(0, SerializedXmlPath.Length - 4)}.Backup.{DateTime.Now:yyyyMMddHHmmssff}.xml";
 
-                    File.Move(serializedXmlPath, serializedXmlBackupPath);
+                    File.Move(SerializedXmlPath, serializedXmlBackupPath);
 
                     ConsoleLogger.Write(".", ConsoleLogger.SuccessColor);
                 }
@@ -179,7 +179,7 @@ namespace StringSimilarityDemo
             }
 
             var objectXmlSerializer = new ObjectXmlSerializer();
-            objectXmlSerializer.SerializeToFile(allCompanyInfos, serializedXmlPath);
+            objectXmlSerializer.SerializeToFile(allCompanyInfos, SerializedXmlPath);
 
             return allCompanyInfos;
         }
