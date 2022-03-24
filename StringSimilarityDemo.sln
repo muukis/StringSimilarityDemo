@@ -5,9 +5,10 @@ VisualStudioVersion = 17.1.32228.430
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StringSimilarityDemo", "StringSimilarityDemo\StringSimilarityDemo.csproj", "{BA87B8F1-C984-437F-A8D6-8409294D37D8}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "PredownloadedFiles", "PredownloadedFiles", "{C95A1FA1-987C-479C-8471-2EA243B4CD8E}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "OtherFiles", "OtherFiles", "{C95A1FA1-987C-479C-8471-2EA243B4CD8E}"
 	ProjectSection(SolutionItems) = preProject
 		StringSimilarityDemo\LastPrhCompanyInfoSearchResult.7z = StringSimilarityDemo\LastPrhCompanyInfoSearchResult.7z
+		StringSimilarityDemo\StringSimilarityDemo.pptx = StringSimilarityDemo\StringSimilarityDemo.pptx
 	EndProjectSection
 EndProject
 Global
